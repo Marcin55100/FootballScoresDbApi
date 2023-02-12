@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FootballScoresDbApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -26,6 +28,13 @@ namespace FootballScoresDbApi
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.GetSection("Key").Value)),
                     };
                 });
+        }
+
+        public static void ConfigureIdentity(this IServiceCollection services)
+        {
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<AuthenticationContext>()
+                .AddDefaultTokenProviders();
         }
     }
 }

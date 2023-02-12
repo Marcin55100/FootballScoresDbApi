@@ -1,15 +1,14 @@
-using FootballScoresDbApi.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using System;
-using Org.BouncyCastle.Asn1.X509.Qualified;
-using FootballScoresDbApi.Logger;
-using Serilog;
 using FootballScoresDbApi;
+using FootballScoresDbApi.Logger;
+using FootballScoresDbApi.Models;
 using FootballScoresDbApi.Services;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 //Logger
 LoggerCreator.CreateLogger();
 builder.Host.UseSerilog();
@@ -23,11 +22,11 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 //Authentication
 builder.Services.AddAuthentication();
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthenticationContext>()
-    .AddDefaultTokenProviders();
+builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);
 builder.Services.AddScoped<IAuthManager, AuthManager>();
+
+
 
 var app = builder.Build();
 
@@ -36,7 +35,6 @@ options.WithOrigins("http://localhost:4200")
 .AllowAnyMethod()
 .AllowAnyHeader());
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
