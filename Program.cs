@@ -1,12 +1,13 @@
-using FootballScoresDbApi.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using System;
-using Org.BouncyCastle.Asn1.X509.Qualified;
+using FootballScoresDbApi;
 using FootballScoresDbApi.Logger;
+using FootballScoresDbApi.Models;
+using FootballScoresDbApi.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 //Logger
@@ -14,21 +15,27 @@ LoggerCreator.CreateLogger();
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AuthenticationContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
+services.AddDbContext<AuthenticationContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 //Authentication
-builder.Services.AddAuthentication();
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AuthenticationContext>()
-    .AddDefaultTokenProviders();
+services.AddAuthentication();
+services.ConfigureIdentity();
+services.ConfigureJWT(builder.Configuration);
+services.AddScoped<IAuthManager, AuthManager>();
+services.AddSwaggerDoc();
 
 
 var app = builder.Build();
-// Configure the HTTP request pipeline.
+
+app.UseCors(options =>
+options.WithOrigins("http://localhost:4200")
+.AllowAnyMethod()
+.AllowAnyHeader());
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -37,9 +44,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

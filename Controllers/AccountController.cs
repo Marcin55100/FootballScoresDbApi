@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using FootballScoresDbApi.Models;
 using FootballScoresDbApi.Models.DTOs;
-using Microsoft.AspNetCore.Http;
+using FootballScoresDbApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,16 +13,26 @@ namespace FootballScoresDbApi.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IMapper _mapper;
+        private readonly IAuthManager _authManager;
         private readonly ILogger<AccountController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public AccountController(ILogger<AccountController> logger, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IMapper mapper)
+        public AccountController(ILogger<AccountController> logger, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IMapper mapper, IAuthManager authManager)
         {
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
             _signInManager = signInManager;
+            _authManager = authManager;
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("private")]
+        public IActionResult GetPrivateData()
+        {
+            return Accepted(new { Data = "this is private data" });
         }
 
         [HttpPost]
@@ -72,13 +83,12 @@ namespace FootballScoresDbApi.Controllers
 
             try
             {
-                var result = await _signInManager.PasswordSignInAsync(loginDTO.Email, loginDTO.Password, false, false);
-
-                if (!result.Succeeded)
+                if (!await _authManager.ValidateUser(loginDTO))
                 {
-                    return Unauthorized(loginDTO);
+                    return Unauthorized();
                 }
-                return Accepted();
+
+                return Accepted(new { Token = await _authManager.CreateToken() });
             }
             catch (Exception ex)
             {
