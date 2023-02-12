@@ -3,6 +3,7 @@ using FootballScoresDbApi.Logger;
 using FootballScoresDbApi.Models;
 using FootballScoresDbApi.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,18 +15,18 @@ LoggerCreator.CreateLogger();
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AuthenticationContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
+services.AddDbContext<AuthenticationContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 //Authentication
-builder.Services.AddAuthentication();
-builder.Services.ConfigureIdentity();
-builder.Services.ConfigureJWT(builder.Configuration);
-builder.Services.AddScoped<IAuthManager, AuthManager>();
-
+services.AddAuthentication();
+services.ConfigureIdentity();
+services.ConfigureJWT(builder.Configuration);
+services.AddScoped<IAuthManager, AuthManager>();
+services.AddSwaggerDoc();
 
 
 var app = builder.Build();
@@ -43,9 +44,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 
