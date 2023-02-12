@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using FootballScoresDbApi.Models;
 using FootballScoresDbApi.Models.DTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
