@@ -9,6 +9,7 @@ namespace FootballScoresDbApi.Models
     {
         private readonly string _connectionString;
 
+
         public AuthenticationContext(DbContextOptions<AuthenticationContext> options) : base(options)
         {
             var extension = options.FindExtension<MySqlOptionsExtension>();
@@ -17,6 +18,8 @@ namespace FootballScoresDbApi.Models
                 _connectionString = extension.ConnectionString;
             }
         }
+
+        public virtual DbSet<Team> Teams { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -28,6 +31,10 @@ namespace FootballScoresDbApi.Models
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            builder.Entity<ApplicationUser>()
+                .HasMany(x => x.Teams)
+                .WithMany(x => x.Users)
+                .UsingEntity(x=> x.ToTable("UsersTeams"));
             base.OnModelCreating(builder);
         }
     }
