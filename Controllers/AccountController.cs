@@ -88,7 +88,7 @@ namespace FootballScoresDbApi.Controllers
                     return Unauthorized();
                 }
 
-                return Accepted(new { Token = await _authManager.CreateToken() });
+                return Accepted(new { token = await _authManager.CreateToken() });
             }
             catch (Exception ex)
             {
